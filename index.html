@@ -164,7 +164,7 @@
                   let from = parseInt(part.split(':')[0]);
                   let to = parseInt(part.split(':')[1]);
                   if(num_images === -1 && from !== 0){
-                    alert('You missed the first image!');
+                    console.log('You missed the first image!');
                   }
                   else if(from === 0 && num_images === -1){
                     num_images = to;
@@ -175,7 +175,7 @@
                     document.getElementById('trackIndicator').innerText = `${(current_image+1 / num_images)*100}%`;
                   }
                   else if(from-1 !== current_image){
-                    alert(`Got part ${from}. Excepted part ${current_image+1}`);
+                    console.log(`Got part ${from}. Excepted part ${current_image+1}`);
                   }
                   else{
                     if(!codes[data]){
