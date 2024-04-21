@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<!-- saved from url=(0043)file:///C:/Users/omerhad/Desktop/index.html -->
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>QR Code Scanner</title>
+  <link rel="stylesheet" href="./QR Code Scanner_files/vs2015.min.css">
+  <script src="./QR Code Scanner_files/highlight.min.js.download"></script>
+  <script src="./QR Code Scanner_files/clipboard.min.js.download"></script>
+  <script>
+    function downloadZipFromBase64(base64String, fileName) {
+  // Step 1: Decode Base64 to binary
+  const binaryString = atob(base64String);
+
+  // Step 2: Create a Uint8Array from the binary string
+  const uint8Array = new Uint8Array(binaryString.length);
+  for (let i = 0; i < binaryString.length; i++) {
+    uint8Array[i] = binaryString.charCodeAt(i);
+  }
+
+  // Step 3: Create a Blob from the Uint8Array
+  const blob = new Blob([uint8Array], { type: 'application/zip' });
+
+  // Step 4: Create a download link and trigger the download
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.download = fileName || 'download.zip';
+
+  // Append the link to the body and trigger the click event
+  document.body.appendChild(link);
+  link.click();
+
+  // Clean up: remove the link from the DOM
+  document.body.removeChild(link);
+}
+
+  </script>
+  <style>
+   body {
+      background-color: #282c34;
+      color: #abb2bf !important;
+      font-family: 'Courier New', monospace;
+      margin: 0;
+    }
+
+    .code-container {
+      position: relative;
+      border: 1px solid #444;
+      border-radius: 5px;
+      overflow: hidden;
+      margin: 16px;
+    }
+
+    .code {
+      padding: 16px;
+      margin: 0;
+      overflow-x: auto;
+      background-color: #2b2b2b !important;
+    }
+
+    .button {
+      cursor: pointer;
+      color: #61afef;
+      background-color: #2b2b2b;
+      border: none;
+      outline: none;
+      padding: 8px;
+      border-radius: 4px;
+      transition: background-color 0.3s;
+    }
+
+    .button:hover {
+      background-color: #3e4451;
+    }
+  </style>
+  <style>
+    #camera-container {
+      position: relative;
+    }
+
+    #qr-result {
+      margin-top: 10px;
+    }
+
+    #qr-box {
+      position: absolute;
+      border: 2px solid red;
+      box-sizing: border-box;
+      pointer-events: none;
+    }
+
+    .track-bar {
+  
+  margin: 16px;
+  position: relative;
+}
+
+#trackInput {
+  width: 100%;
+}
+
+#trackIndicator {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 100%;
+  text-align: center;
+  font-family: Arial, sans-serif;
+}
+    
+  </style>
+<script src="./QR Code Scanner_files/jsQR.js.download"></script></head>
+<body>
+  <h1>QR Code Scanner</h1>
+  <div id="camera-container">
+    <video id="camera-preview" width="400px" height="400px" autoplay="" muted="" playsinline=""></video>
+    <div id="qr-box"></div>
+  </div>
+  <div id="qr-result">QR Code content will be displayed here</div>
+  <button class="button" data-clipboard-target="#example-code">Copy</button>
+    <button class="button" onclick="downloadZipFromBase64((document.getElementById('example-code')).innerText)">Download</button>
+    <div class="track-bar">
+      <input readonly type="range" id="trackInput" min="0" max="100" step="1" value="0">
+      <div id="trackIndicator">0%</div>
+    </div>
+  <div class="code-container">
+    <pre class="code"><code class="html hljs language-xml" id="example-code" data-highlighted="yes"></code></pre>
+  </div>
+  <script>
+    if ('mediaDevices' in navigator && 'getUserMedia' in navigator.mediaDevices) {
+      // Load the jsQR library dynamically
+      var script = document.createElement('script');
+      script.src = './QR Code Scanner_files/jsQR.js';
+      script.onload = initializeCamera;
+      document.head.appendChild(script);
+
+      function initializeCamera() {
+        codes = {};
+        let num_images = -1;
+        let current_image = -1;
+          navigator.mediaDevices.getUserMedia({video: { facingMode: 'environment'}})
+            .then(function (stream) {
+              var videoElement = document.getElementById('camera-preview');
+              videoElement.srcObject = stream;
+
+              var qrResult = document.getElementById('example-code');
+              var qrBox = document.getElementById('qr-box');
+
+              // Create a hidden canvas for capturing video frames
+              var canvas = document.createElement('canvas');
+              canvas.width = videoElement.width;
+              canvas.height = videoElement.height;
+              var context = canvas.getContext('2d');
+
+              function scanQRCode() {
+                // Capture a video frame to the canvas
+                context.drawImage(videoElement, 0, 0, canvas.width, canvas.height);
+                var imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+                var code = jsQR(imageData.data, imageData.width, imageData.height);
+
+                if (code) {
+                  let part = code.data.split('$')[0];
+                  let data = code.data.split('$')[1];
+                  let from = parseInt(part.split(':')[0]);
+                  let to = parseInt(part.split(':')[1]);
+                  if(num_images === -1 && from !== 0){
+                    alert('You missed the first image!');
+                    return;
+                  }
+                  else if(from === 0){
+                    num_images = to;
+                    current_image = 0;
+                    qrResult.innerText+=data;
+                    document.getElementById('trackInput').value = (current_image+1 / num_images)*100;
+                    document.getElementById('trackIndicator').innerText = `${(current_image+1 / num_images)*100}%`;
+                    return;
+                  }
+                  if(from-1 !== current_image){
+                    alert(`Got part ${from}. Excepted part ${current_image+1}`);
+                  }
+                  else{
+                    current_image = from;
+                    qrResult.innerText+=data;
+                    document.getElementById('trackInput').value = (current_image+1 / num_images)*100;
+                    document.getElementById('trackIndicator').innerText = `${(current_image+1 / num_images)*100}%`;
+                  }
+                  // if(!codes[code.data]){
+                  // qrResult.innerText+=code.data;
+                  // codes[code.data] =true;
+                  // }
+                  // Draw a box around the detected QR code
+                  var topLeft = code.location.topLeftCorner;
+                  var bottomRight = code.location.bottomRightCorner;
+
+                  qrBox.style.left = topLeft.x + 'px';
+                  qrBox.style.top = topLeft.y + 'px';
+                  qrBox.style.width = (bottomRight.x - topLeft.x) + 'px';
+                  qrBox.style.height = (bottomRight.y - topLeft.y) + 'px';
+                  qrBox.style.display = 'block';
+                } else {
+                  qrBox.style.display = 'none';
+                }
+
+                requestAnimationFrame(scanQRCode);
+              }
+
+              scanQRCode();
+            })
+            .catch(function (error) {
+              console.error('Error accessing the camera: ', error);
+            });
+        }
+      
+    } else {
+      alert('Sorry, your browser does not support the camera API.');
+    }
+  </script>
+   
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const trackInput = document.getElementById('trackInput');
+  const trackIndicator = document.getElementById('trackIndicator');
+
+  trackInput.addEventListener('input', updateTrackIndicator);
+
+  // Initial update
+  updateTrackIndicator();
+
+  function updateTrackIndicator() {
+    const currentValue = parseInt(document.getElementById('trackInput').value);
+    trackIndicator.innerText = `${currentValue}%`;
+  }
+
+
+      // Initialize syntax highlighting
+      hljs.initHighlightingOnLoad();
+  
+      // Initialize clipboard.js
+      var clipboard = new ClipboardJS('.copy-button');
+  
+      clipboard.on('success', function(e) {
+        e.clearSelection();
+        alert('Code copied to clipboard!');
+      });
+  
+      clipboard.on('error', function(e) {
+        alert('Failed to copy code. You can still select and copy manually.');
+      });
+    });
+
+
+  </script>
+
+
+</body></html>
