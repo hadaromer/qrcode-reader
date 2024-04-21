@@ -165,24 +165,26 @@
                   let to = parseInt(part.split(':')[1]);
                   if(num_images === -1 && from !== 0){
                     alert('You missed the first image!');
-                    return;
                   }
-                  else if(from === 0){
+                  else if(from === 0 && num_images === -1){
                     num_images = to;
                     current_image = 0;
+                    codes[data] = true;
                     qrResult.innerText+=data;
                     document.getElementById('trackInput').value = (current_image+1 / num_images)*100;
                     document.getElementById('trackIndicator').innerText = `${(current_image+1 / num_images)*100}%`;
-                    return;
                   }
                   if(from-1 !== current_image){
                     alert(`Got part ${from}. Excepted part ${current_image+1}`);
                   }
                   else{
-                    current_image = from;
-                    qrResult.innerText+=data;
-                    document.getElementById('trackInput').value = (current_image+1 / num_images)*100;
-                    document.getElementById('trackIndicator').innerText = `${(current_image+1 / num_images)*100}%`;
+                    if(!codes[data]){
+                      codes[data] = true;
+                      current_image = from;
+                      qrResult.innerText+=data;
+                      document.getElementById('trackInput').value = (current_image+1 / num_images)*100;
+                      document.getElementById('trackIndicator').innerText = `${(current_image+1 / num_images)*100}%`;
+                    }
                   }
                   // if(!codes[code.data]){
                   // qrResult.innerText+=code.data;
