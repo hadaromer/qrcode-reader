@@ -174,7 +174,7 @@
                     document.getElementById('trackInput').value = (current_image+1 / num_images)*100;
                     document.getElementById('trackIndicator').innerText = `${(current_image+1 / num_images)*100}%`;
                   }
-                  if(from-1 !== current_image){
+                  else if(from-1 !== current_image){
                     alert(`Got part ${from}. Excepted part ${current_image+1}`);
                   }
                   else{
