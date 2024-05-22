@@ -123,6 +123,9 @@
       <input readonly type="range" id="trackInput" min="0" max="100" step="1" value="0">
       <div id="trackIndicator">0%</div>
     </div>
+  <p id='totalScanned'>
+    
+  </p>
   <div class="code-container">
     <pre class="code"><code class="html hljs language-xml" id="example-code" data-highlighted="yes"></code></pre>
   </div>
@@ -182,8 +185,9 @@
                       codes[data] = true;
                       current_image = from;
                       qrResult.innerText+=data;
-                      document.getElementById('trackInput').value = (current_image+1 / num_images)*100;
-                      document.getElementById('trackIndicator').innerText = `${(current_image+1 / num_images)*100}%`;
+                      document.getElementById('trackInput').value = (current_image+1 / num_images);
+                      document.getElementById('trackIndicator').innerText = `${(current_image+1 / num_images)}%`;
+                      document.getElementById('totalScanned').innerText = `${current_image} / ${num_images}`;
                     }
                   }
                   // if(!codes[code.data]){
